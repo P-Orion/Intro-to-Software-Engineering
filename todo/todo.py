@@ -40,34 +40,80 @@ class State(rx.State):
 
 # --- UI Components ---
 
-# CHANGED: todo_item now accepts a dictionary and displays priority.
+# Improved todo item with better alignment and consistent spacing
 def todo_item(item: Dict[str, str]) -> rx.Component:
     """Render a single todo item with its priority."""
     return rx.list_item(
         rx.hstack(
+            # Checkmark button with consistent sizing
             rx.button(
-                rx.icon(tag="check", size=20),
-                on_click=lambda: State.finish_item(item), # Pass the whole item dict
-                height="auto", # Adjust button height
-                padding="0.25em", # Smaller padding
+                rx.icon(tag="check", size=16),
+                on_click=lambda: State.finish_item(item),
+                height="2rem",
+                width="2rem",
+                min_height="2rem",
+                min_width="2rem",
+                padding="0",
                 variant="outline",
                 color_scheme="green",
+                border_radius="full",
+                _hover={"bg": "green.50"},
+                transition="all 0.2s",
+                margin="0", # Remove any default margins
             ),
-            # CHANGED: Display item text
-            rx.text(item["text"], as_="span", margin_left="0.5em"),
-            rx.spacer(), # Pushes priority to the right
-            # ADDED: Display priority with some styling
+            # Task text with proper alignment
+            rx.text(
+                item["text"], 
+                as_="span", 
+                margin_left="0.75rem",
+                font_size="1rem",
+                font_weight="medium",
+                line_height="1.5rem", # Consistent line height
+                overflow="hidden", # Prevent text overflow
+                text_overflow="ellipsis", # Add ellipsis for long text
+                align_self="center", # Center vertically
+            ),
+            rx.spacer(), # Add spacer to push badge to the right
+            # Priority badge with improved centering
             rx.badge(
                 item["priority"],
-                color_scheme="blue" if item["priority"] == "Medium" else ("red" if item["priority"] == "High" else "gray"),
+                color_scheme=rx.cond(
+                    item["priority"] == "Medium",
+                    "blue",
+                    rx.cond(
+                        item["priority"] == "High",
+                        "red",
+                        "gray"
+                    )
+                ),
                 variant="solid",
-                border_radius="full", # Make badge rounded
-                padding_x="0.75em", # Horizontal padding
+                border_radius="full",
+                padding_x="0.75rem",
+                padding_y="0.25rem",
+                font_weight="medium",
+                font_size="0.8rem",
+                min_width="4.5rem", # Fixed minimum width for consistency
+                text_align="center", # Center text in badge
+                align_self="center", # Center vertically
+                display="flex", # Use flexbox for better centering
+                justify_content="center", # Center horizontally
+                align_items="center", # Center vertically
+                height="1.75rem", # Fixed height for consistency
+                line_height="1", # Tighter line height for better centering
             ),
-            align_items="center", # Vertically align items in the row
-            width="100%", # Ensure hstack takes full width
+            align_items="center",
+            width="100%",
+            spacing="3", # Consistent spacing
+            padding="0.25rem", # Add padding inside the hstack
         ),
-        padding_y="0.25em", # Vertical padding for the list item
+        padding_y="0.5rem", # Consistent vertical padding
+        padding_x="0.25rem", # Add horizontal padding
+        border_bottom="1px solid",
+        border_color="gray.100",
+        _hover={"bg": "gray.50"},
+        transition="all 0.2s",
+        margin_y="0.25rem", # Add vertical margin between items
+        width="100%", # Ensure full width
     )
 
 # CHANGED: todo_list passes the dictionary item to todo_item.
@@ -81,35 +127,68 @@ def todo_list() -> rx.Component:
         width="100%",
     )
 
-# CHANGED: new_item form now includes a priority selector.
+# Improved form layout with horizontal arrangement for better alignment
 def new_item() -> rx.Component:
     """Render the form to add a new item."""
     return rx.form(
         rx.hstack(
-            rx.input(
-                placeholder="Add a todo...",
-                name="new_item", # Input field for item text
-                flex_grow=1, # Allow input to take available space
+            rx.vstack(
+                # Input field with fixed height to prevent text cutting
+                rx.input(
+                    placeholder="Add a todo...",
+                    name="new_item",
+                    size="2", # Medium size for better text display
+                    border_width="1px",
+                    border_color="gray.300",
+                    _focus={"border_color": "blue.400"},
+                    border_radius="md",
+                    height="2.5rem", # Fixed height to prevent text cutting
+                    min_height="2.5rem", # Ensure minimum height
+                    padding_y="0", # Remove vertical padding that might cut text
+                    padding_x="0.75rem", # Horizontal padding
+                    width="100%",
+                ),
+                # Priority selector with consistent styling
+                rx.select(
+                    State.priority_levels,
+                    placeholder="Priority",
+                    name="priority",
+                    default_value="Medium",
+                    size="2",
+                    border_width="1px",
+                    border_color="gray.300",
+                    _focus={"border_color": "blue.400"},
+                    border_radius="md",
+                    height="2.5rem", # Fixed height to match input
+                    min_height="2.5rem", # Ensure minimum height
+                    width="100%",
+                    margin_top="2",
+                ),
+                width="100%",
+                spacing="2",
+                flex_grow=1,
             ),
-            # ADDED: Dropdown selector for priority
-            rx.select(
-                State.priority_levels, # Options from state
-                placeholder="Priority",
-                name="priority", # Form field name for priority
-                default_value="Medium", # Default selection
-            ),
+            # Add button with consistent height
             rx.button(
                 "Add",
-                type="submit", # Submit the form on click
+                type="submit",
                 color_scheme="blue",
-             ),
-            align_items="center", # Align items vertically
-            spacing="3", # Spacing between elements
+                size="2",
+                height="2.5rem", # Fixed height to match input
+                min_height="2.5rem", # Ensure minimum height
+                border_radius="md",
+                _hover={"bg": "blue.600"},
+                margin_left="3",
+                align_self="flex-start", # Align with the top input
+            ),
+            width="100%",
+            align_items="flex-start", # Align items at the top
+            spacing="3",
         ),
-        # CHANGED: on_submit still calls State.add_item, which now handles the dictionary
         on_submit=State.add_item,
-        reset_on_submit=True, # Clear form after submission
-        width="100%", # Make form take full width
+        reset_on_submit=True,
+        width="100%",
+        margin_bottom="4",
     )
 
 # --- Main App Definition ---
@@ -117,24 +196,98 @@ def index() -> rx.Component:
     """The main page of the app."""
     return rx.container(
         rx.vstack(
-            rx.heading("Todos", size="xl"), # Larger heading
-            new_item(), # Form to add items
-            rx.divider(border_color="gray.200"), # Visual separator
-            todo_list(), # The list of items
+            # App header with improved styling and spacing
+            rx.box(
+                rx.heading(
+                    "Todo App", 
+                    size="1", 
+                    color="blue.600",
+                    font_weight="bold",
+                    margin="0", # Remove default margin
+                    padding="0", # Remove default padding
+                    line_height="1.2", # Tighter line height
+                ),
+                rx.text(
+                    "Manage your tasks with priorities",
+                    color="gray.600",
+                    font_size="1rem",
+                    margin_top="0.5rem",
+                    padding="0", # Remove default padding
+                ),
+                text_align="center",
+                width="100%",
+                padding_y="1rem",
+                margin_bottom="1rem", # Add bottom margin
+            ),
+            
+            # Form to add new items
+            new_item(),
+            
+            # Visual separator with consistent styling
+            rx.divider(
+                border_color="gray.200",
+                border_width="1px",
+                margin_y="1.5rem",
+                opacity="0.6", # Slightly transparent
+            ),
+            
+            # Section header centered
+            rx.box(
+                rx.heading(
+                    "Your Tasks",
+                    size="3",
+                    color="gray.700",
+                    margin="0", # Remove default margin
+                    padding="0", # Remove default padding
+                    font_size="1.25rem", # Explicit font size
+                ),
+                width="100%",
+                margin_bottom="0.75rem",
+                text_align="center", # Center the heading
+            ),
+            
+            # Todo list with proper spacing - centered as a whole
+            rx.center(
+                rx.box(
+                    todo_list(),
+                    width="100%",
+                    padding="0.5rem 0", # Add vertical padding
+                    max_width="500px", # Fixed width for the todo list
+                    border_radius="md",
+                ),
+                width="100%",
+            ),
+            
+            # Footer with consistent styling
+            rx.text(
+                "Click the checkmark to complete a task",
+                color="gray.500",
+                font_size="0.8rem",
+                margin_top="1rem",
+                text_align="center",
+                padding="0", # Remove default padding
+            ),
+            
             align_items="stretch", # Stretch items to fill container width
-            spacing="5", # Spacing between vstack elements
+            spacing="3", # Consistent spacing between elements
             width="100%", # Ensure vstack takes full width
             max_width="600px", # Limit max width for better readability
-            margin_top="2em", # Add some margin at the top
-            padding="1em", # Padding inside the container
-            border="1px solid #ddd", # Add a light border
+            margin="2rem auto", # Center horizontally with top/bottom margin
+            padding="1.5rem", # Consistent padding
+            border="1px solid #ddd", # Light border
             border_radius="lg", # Rounded corners
-            box_shadow="md", # Add a subtle shadow
+            box_shadow="md", # Lighter shadow for better appearance
+            background_color="white", # White background
+            overflow="hidden", # Prevent content overflow
         ),
         center_content=True, # Center the main vstack container
+        padding="1rem", # Reduced padding for better mobile view
+        max_width="100%", # Allow container to use full width
+        min_height="100vh", # Minimum height to fill viewport
+        background="linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)", # Gradient background
     )
 
 # Create app instance and add page.
 app = rx.App()
 app.add_page(index, title="Todo App with Priority")
-app.compile()
+# Changed from app.compile() to fix the AttributeError
